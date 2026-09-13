@@ -2,161 +2,234 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Inventory Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory & Sales Tracker</title>
     <style>
         :root {
-            --primary: #e63946;
-            --secondary: #457b9d;
-            --bg: #f8f9fa;
-            --text: #1d3557;
-            --white: #ffffff;
+            --primary: #2a9d8f;
+            --secondary: #e9c46a;
+            --danger: #e76f51;
+            --dark: #264653;
+            --light: #f4f1de;
         }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            background-color: var(--bg); color: var(--text); margin: 0; padding: 0; 
-            -webkit-tap-highlight-color: transparent;
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light);
+            margin: 0;
+            padding: 20px;
+            color: var(--dark);
         }
-        .app-header { 
-            background: var(--primary); color: white; padding: 20px; 
-            text-align: center; font-size: 1.5rem; font-weight: bold; 
-            position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .container { padding: 15px; max-width: 600px; margin: 0 auto; }
+
+        .container { max-width: 600px; margin: 0 auto; }
         
-        /* Mobile Form */
-        .add-product-form { 
-            background: var(--white); padding: 20px; border-radius: 15px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 25px;
-            display: flex; flex-direction: column; gap: 12px;
-        }
-        .add-product-form input, .add-product-form textarea { 
-            padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; /* 16px prevents iOS zoom */
-        }
-        .add-product-form button { 
-            background: var(--secondary); color: white; border: none; 
-            padding: 15px; border-radius: 8px; cursor: pointer; 
-            font-weight: bold; font-size: 16px; transition: background 0.2s;
-        }
-        .add-product-form button:active { background: #345e7a; }
+        h2 { text-align: center; color: var(--dark); }
 
-        /* Product Cards */
-        .product-list { display: grid; gap: 15px; }
-        .product-card { 
-            background: var(--white); padding: 15px; border-radius: 15px; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; 
-            flex-direction: column; gap: 12px; border-left: 6px solid var(--secondary);
+        /* Tab System */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
         }
-        .product-header { display: flex; justify-content: space-between; align-items: center; }
-        .product-name { font-weight: bold; font-size: 1.1rem; }
+        .tab-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            background: #ddd;
+            font-weight: bold;
+        }
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* Forms */
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        button.main-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* Item List */
+        .item-card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-left: 5px solid var(--primary);
+        }
+
+        .item-info b { display: block; font-size: 18px; }
+        .item-info span { font-size: 14px; color: #666; }
+
+        .delete-btn {
+            background: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        /* Reminder Specific Colors */
+        .urgent { border-left-color: var(--danger) !important; background: #fff5f5; }
+        .warning { border-left-color: var(--secondary) !important; background: #fffdf5; }
         
-        .controls { display: flex; align-items: center; gap: 15px; }
-        .qty-btn { 
-            width: 35px; height: 35px; border-radius: 50%; border: 1px solid #ddd;
-            background: #fdfdfd; cursor: pointer; font-weight: bold; font-size: 18px;
-        }
-        .qty-val { font-weight: bold; min-width: 25px; text-align: center; font-size: 1.1rem; }
-
-        .description-area { 
-            width: 100%; border: 1px solid transparent; background: #fdfdfd; 
-            resize: none; font-family: inherit; font-size: 14px; color: #555;
-            padding: 8px; border-radius: 5px;
-        }
-        .description-area:focus { border: 1px solid var(--secondary); outline: none; background: white; }
-
-        .meta-info { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; }
         .expiry-date { color: #d62828; font-weight: 600; }
-        
-        .delete-btn { background: #ffe5ec; color: #c9184a; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
-        
-        .expired { border-left-color: #d62828; background-color: #fffafa; }
     </style>
 </head>
 <body>
 
-<div class="app-header">📦 Inventory Pro</div>
-
 <div class="container">
-    <div class="add-product-form">
-        <input type="text" id="name" placeholder="Product Name">
-        <input type="date" id="expiry">
-        <textarea id="desc" placeholder="Description..." rows="2"></textarea>
-        <button onclick="addProduct()">Add to Inventory</button>
+    <h2>📦 Stock & Sales</h2>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="showPage('inventory')">Inventory</button>
+        <button class="tab-btn" onclick="showPage('reminders')">TPR/Sales</button>
     </div>
 
-    <div id="productList" class="product-list"></div>
+    <!-- INVENTORY PAGE -->
+    <div id="inventory" class="page active">
+        <div class="card">
+            <input type="text" id="prodName" placeholder="Product Name">
+            <input type="number" id="prodQty" placeholder="Quantity">
+            <input type="date" id="prodExp">
+            <button class="main-btn" onclick="addItem('inventory')">Add to Inventory</button>
+        </div>
+        <div id="inventoryList"></div>
+    </div>
+
+    <!-- REMINDERS PAGE -->
+    <div id="reminders" class="page">
+        <div class="card">
+            <input type="text" id="remName" placeholder="Sale/TPR Item (e.g. Coke 2L)">
+            <input type="text" id="remPrice" placeholder="Sale Price (e.g. $1.99)">
+            <label style="font-size: 12px; color: #666;">End Date:</label>
+            <input type="date" id="remDate">
+            <button class="main-btn" style="background: var(--dark);" onclick="addItem('reminders')">Set Reminder</button>
+        </div>
+        <div id="remindersList"></div>
+    </div>
 </div>
 
 <script>
-    let inventory = JSON.parse(localStorage.getItem('mobile_inv')) || [];
-
-    function save() {
-        localStorage.setItem('mobile_inv', JSON.stringify(inventory));
-        render();
+    function showPage(pageId) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+        event.currentTarget.classList.add('active');
     }
 
-    function addProduct() {
-        const name = document.getElementById('name').value;
-        const desc = document.getElementById('desc').value;
-        const expiry = document.getElementById('expiry').value;
-        if(!name) return alert('Please enter a name');
-        inventory.push({ id: Date.now(), name, desc, expiry, qty: 1 });
-        document.getElementById('name').value = '';
-        document.getElementById('desc').value = '';
-        document.getElementById('expiry').value = '';
-        save();
-    }
-
-    function updateQty(id, delta) {
-        const item = inventory.find(i => i.id === id);
-        item.qty = Math.max(0, item.qty + delta);
-        save();
-    }
-
-    function updateDesc(id, newDesc) {
-        const item = inventory.find(i => i.id === id);
-        item.desc = newDesc;
-        localStorage.setItem('mobile_inv', JSON.stringify(inventory));
-    }
-
-    function deleteProduct(id) {
-        if(confirm('Delete this item?')) {
-            inventory = inventory.filter(i => i.id !== id);
-            save();
+    function addItem(type) {
+        let item = {};
+        if (type === 'inventory') {
+            item = {
+                id: Date.now(),
+                name: document.getElementById('prodName').value,
+                qty: document.getElementById('prodQty').value,
+                date: document.getElementById('prodExp').value,
+                type: 'inventory'
+            };
+        } else {
+            item = {
+                id: Date.now(),
+                name: document.getElementById('remName').value,
+                qty: document.getElementById('remPrice').value, // using qty field for price
+                date: document.getElementById('remDate').value,
+                type: 'reminders'
+            };
         }
+
+        if (!item.name || !item.date) return alert("Please fill in name and date");
+
+        let data = JSON.parse(localStorage.getItem('myStockApp') || '[]');
+        data.push(item);
+        localStorage.setItem('myStockApp', JSON.stringify(data));
+        
+        // Clear inputs
+        document.querySelectorAll('input').forEach(i => i.value = '');
+        renderLists();
     }
 
-    function isExpired(dateStr) {
-        if(!dateStr) return false;
-        return new Date(dateStr) < new Date().setHours(0,0,0,0);
+    function deleteItem(id) {
+        let data = JSON.parse(localStorage.getItem('myStockApp') || '[]');
+        data = data.filter(i => i.id !== id);
+        localStorage.setItem('myStockApp', JSON.stringify(data));
+        renderLists();
     }
 
-    function render() {
-        const list = document.getElementById('productList');
-        list.innerHTML = '';
-        inventory.forEach(item => {
-            const expired = isExpired(item.expiry);
-            const card = document.createElement('div');
-            card.className = `product-card ${expired ? 'expired' : ''}`;
-            card.innerHTML = `
-                <div class="product-header">
-                    <span class="product-name">${item.name}</span>
-                    <div class="controls">
-                        <button class="qty-btn" onclick="updateQty(${item.id}, -1)">−</button>
-                        <span class="qty-val">${item.qty}</span>
-                        <button class="qty-btn" onclick="updateQty(${item.id}, 1)">+</button>
+    function renderLists() {
+        const data = JSON.parse(localStorage.getItem('myStockApp') || '[]');
+        const invList = document.getElementById('inventoryList');
+        const remList = document.getElementById('remindersList');
+        
+        invList.innerHTML = '';
+        remList.innerHTML = '';
+
+        const today = new Date().setHours(0,0,0,0);
+
+        data.forEach(item => {
+            const itemDate = new Date(item.date).setHours(0,0,0,0);
+            
+            const diffDays = Math.ceil((itemDate - today) / (1000 * 60 * 60 * 24));
+            
+            let statusClass = '';
+            if (diffDays <= 0) statusClass = 'urgent';
+            else if (diffDays <= 3) statusClass = 'warning';
+
+            const html = `
+                <div class="item-card ${statusClass}">
+                    <div class="item-info">
+                        <b>${item.name}</b>
+                        
+                        <span>${item.type === 'inventory' ? 'Qty: ' + item.qty : 'Price: ' + item.qty}</span><br>
+                        <span class="expiry-date">Until: ${item.date}</span>
                     </div>
-                </div>
-                <textarea class="description-area" onchange="updateDesc(${item.id}, this.value)" placeholder="Notes...">${item.desc}</textarea>
-                <div class="meta-info">
-                    <span class="expiry-date">📅 ${item.expiry || 'No date'} ${expired ? '⚠️ EXPIRED' : ''}</span>
-                    <button class="delete-btn" onclick="deleteProduct(${item.id})">Delete</button>
+                    <button class="delete-btn" onclick="deleteItem(${item.id})">✕</button>
                 </div>
             `;
-            list.appendChild(card);
+
+            if (item.type === 'inventory') invList.innerHTML += html;
+            else remList.innerHTML += html;
         });
     }
-    render();
+
+    window.onload = renderLists;
 </script>
+
 </body>
 </html>
+            
